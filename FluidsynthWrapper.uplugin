@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "FluidsynthWrapper",
+	"Description": "Wrapper of the Fluidsynth library for Unreal Engine.",
+	"Category": "Other",
+	"CreatedBy": "Progz",
+	"CreatedByURL": "https://github.com/ThomasProg",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "FluidsynthWrapper",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
