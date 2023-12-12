@@ -1,0 +1,1 @@
+To make the plugin work, make sure to add Fluidsynth's dll files in the Binaries/Win64 folder.
