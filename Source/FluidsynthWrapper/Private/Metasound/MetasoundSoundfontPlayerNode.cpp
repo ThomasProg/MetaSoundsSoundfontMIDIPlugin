@@ -240,6 +240,21 @@ public:
 
 			});
 
+		StopReadRef->ExecuteBlock(
+			[&](int32 StartFrame, int32 EndFrame)
+			{
+
+
+			},
+			[this](int32 StartFrame, int32 EndFrame)
+			{
+				// Start playing a note (adjust the parameters as needed)
+				//fluid_synth_program_change(synth, 0, 0);
+				//fluid_synth_noteon(synth, *ChannelReadRef, *KeyReadRef, *VelocityReadRef);
+				fluid_synth_noteoff(synth, *ChannelReadRef, *KeyReadRef);
+
+			});
+
 	}
 
 
