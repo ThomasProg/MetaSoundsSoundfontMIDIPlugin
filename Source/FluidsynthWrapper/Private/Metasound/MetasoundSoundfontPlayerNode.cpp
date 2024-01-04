@@ -158,7 +158,8 @@ public:
 		synth = new_fluid_synth(settings);
 
 		// Create an audio driver
-		driverCallback = new_fluid_audio_driver2(settings, fluidsynth_callback, this);
+		//driverCallback = new_fluid_audio_driver2(settings, fluidsynth_callback, this);
+		driverCallback = new_fluid_audio_driver(settings, synth);
 
 		// Load SoundFont
 		fluid_synth_sfload(synth, "C:/Users/thoma/PandorasBox/Projects/ModularMusicGenerationModules/Assets/Soundfonts/Touhou/Touhou.sf2", 1);
