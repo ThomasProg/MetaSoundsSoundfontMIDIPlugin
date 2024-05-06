@@ -35,6 +35,11 @@ void UFluidsynthAudioPlayer::NoteOff(int32 channel, int32 key)
 	fluid_synth_noteoff(synth, channel, key);
 }
 
+void UFluidsynthAudioPlayer::ProgramChange(int32 channel, int32 newProgram)
+{
+	fluid_synth_program_change(synth, channel, newProgram);
+}
+
 void UFluidsynthAudioPlayer::BeginDestroy()
 {
 	if (driverCallback)

@@ -30,4 +30,7 @@ class FLUIDSYNTHWRAPPER_API UFluidsynthAudioPlayer : public UObject
 
 	UFUNCTION(BlueprintCallable)
 	void NoteOff(int32 channel, int32 key);
+
+	UFUNCTION(BlueprintCallable)
+	void ProgramChange(int32 channel, int32 newProgram);
 };
