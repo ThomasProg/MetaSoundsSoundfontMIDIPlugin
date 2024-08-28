@@ -6,17 +6,17 @@ using UnrealBuildTool;
 
 public class FluidsynthWrapperLibrary : ModuleRules
 {
-	public string BinDir { get => "C:\\Users\\thoma\\PandorasBox\\Projects\\ModularMusicGenerationModules\\Modules\\RuntimeModules\\fluidsynth\\Downloads\\bin"; }
-	public string IncludeDir { get => "C:\\Users\\thoma\\PandorasBox\\Projects\\ModularMusicGenerationModules\\Modules\\RuntimeModules\\fluidsynth\\Downloads\\include"; }
-	public string LibDir { get => "C:\\Users\\thoma\\PandorasBox\\Projects\\ModularMusicGenerationModules\\Modules\\RuntimeModules\\fluidsynth\\Downloads\\lib"; }
+	public string BinDir { get => "fluidsynth\\bin"; }
+	public string IncludeDir { get => "fluidsynth\\include"; }
+	public string LibDir { get => "fluidsynth\\lib"; }
 
 	public FluidsynthWrapperLibrary(ReadOnlyTargetRules Target) : base(Target)
 	{
 		Type = ModuleType.External;
 
-		PublicIncludePaths.Add(IncludeDir);
-		PublicAdditionalLibraries.Add(Path.Combine(LibDir,"libfluidsynth.a"));
-		PublicAdditionalLibraries.Add(Path.Combine(LibDir, "libfluidsynth.dll.a"));
+		PublicIncludePaths.Add(Path.Combine(ModuleDirectory, IncludeDir));
+		PublicAdditionalLibraries.Add(Path.Combine(ModuleDirectory, LibDir, "libfluidsynth.a"));
+		PublicAdditionalLibraries.Add(Path.Combine(ModuleDirectory, LibDir, "libfluidsynth.dll.a"));
 
 		string[] str = {
 			"fluidsynth.exe",

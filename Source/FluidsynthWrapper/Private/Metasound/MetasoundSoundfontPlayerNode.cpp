@@ -162,7 +162,11 @@ public:
 		driverCallback = new_fluid_audio_driver(settings, synth);
 
 		// Load SoundFont
-		fluid_synth_sfload(synth, "C:/Users/thoma/PandorasBox/Projects/ModularMusicGenerationModules/Assets/Soundfonts/Touhou/Touhou.sf2", 1);
+		//fluid_synth_sfload(synth, "C:/Users/thoma/PandorasBox/Projects/ModularMusicGenerationModules/Assets/Soundfonts/Touhou/Touhou.sf2", 1);
+		FString RelativePath = FPaths::ProjectContentDir();
+
+		FString FullPath = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*RelativePath);
+		fluid_synth_sfload(synth, TCHAR_TO_UTF8 (*(FullPath + "/" + "Touhou.sf2")), 1);
 	}
 
 	virtual ~FMetaSoundSoundfontPlayerNodeOperator()

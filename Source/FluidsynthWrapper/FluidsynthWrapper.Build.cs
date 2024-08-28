@@ -33,7 +33,7 @@ public class FluidsynthWrapper : ModuleRules
 				"MetasoundEngine",
 				"MetasoundFrontend",
 				"MetasoundStandardNodes",
-				"AudioCodecEngine",
+				//"AudioCodecEngine",
 				"Serialization",
 				"AudioPlatformConfiguration",
 				"WaveTable"

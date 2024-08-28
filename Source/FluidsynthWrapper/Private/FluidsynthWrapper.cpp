@@ -20,7 +20,8 @@ void FFluidsynthWrapperModule::StartupModule()
 	// Add on the relative location of the third party dll and load it
 	FString LibraryPath;
 #if PLATFORM_WINDOWS
-	FString s = "C:/Users/thoma/PandorasBox/Projects/ModularMusicGenerationModules/Modules/RuntimeModules/fluidsynth/Downloads/bin";
+	//FString s = "C:/Users/thoma/PandorasBox/Projects/ModularMusicGenerationModules/Modules/RuntimeModules/fluidsynth/Downloads/bin";
+	FString s = FPaths::ProjectPluginsDir() + "/MetaSoundsSoundfontMIDIPlugin/Source/ThirdParty/FluidsynthWrapperLibrary/fluidsynth/bin";
 	LibraryPath = FPaths::Combine(*s, TEXT("libfluidsynth-3.dll"));
 
 
