@@ -54,10 +54,15 @@ public:
 					})
 			),
 			FOutputVertexInterface(
-				TOutputDataVertex<FAudioBuffer>("MonoOut", FDataVertexMetadata
+				TOutputDataVertex<FAudioBuffer>("LOut", FDataVertexMetadata
 					{
-						LOCTEXT("MetaSoundWaveTablePlayer_OutputMonoOutDesc", "Mono output audio from player"),
-						LOCTEXT("MetaSoundWaveTablePlayer_OutputMonoOutName", "Mono Out")
+						LOCTEXT("MetaSoundWaveTablePlayer_OutputMonoOutDesc", "L output audio from player"),
+						LOCTEXT("MetaSoundWaveTablePlayer_OutputMonoOutName", "LOut")
+					}),
+				TOutputDataVertex<FAudioBuffer>("ROut", FDataVertexMetadata
+					{
+						LOCTEXT("MetaSoundWaveTablePlayer_OutputMonoOutDesc", "R output audio from player"),
+						LOCTEXT("MetaSoundWaveTablePlayer_OutputMonoOutName", "ROut")
 					}),
 				TOutputDataVertex<FTrigger>("OnFinished", FDataVertexMetadata
 					{
@@ -144,7 +149,8 @@ public:
 		//, PitchShiftReadRef(InPitchShiftReadRef)
 		//, LoopReadRef(InLoopReadRef)
 		//, PhaseModReadRef(MoveTemp(InPhaseModReadRef))
-		, OutBufferWriteRef(TDataWriteReferenceFactory<FAudioBuffer>::CreateAny(InParams.OperatorSettings))
+		, OutBufferLWriteRef(TDataWriteReferenceFactory<FAudioBuffer>::CreateAny(InParams.OperatorSettings))
+		, OutBufferRWriteRef(TDataWriteReferenceFactory<FAudioBuffer>::CreateAny(InParams.OperatorSettings))
 		, OutOnFinishedRef(TDataWriteReferenceFactory<FTrigger>::CreateExplicitArgs(InParams.OperatorSettings))
 	{
 		const float BlockRate = InParams.OperatorSettings.GetActualBlockRate();
@@ -158,8 +164,7 @@ public:
 		synth = new_fluid_synth(settings);
 
 		// Create an audio driver
-		//driverCallback = new_fluid_audio_driver2(settings, fluidsynth_callback, this);
-		driverCallback = new_fluid_audio_driver(settings, synth);
+		//driverCallback = new_fluid_audio_driver(settings, synth);
 
 		// Load SoundFont
 		//fluid_synth_sfload(synth, "C:/Users/thoma/PandorasBox/Projects/ModularMusicGenerationModules/Assets/Soundfonts/Touhou/Touhou.sf2", 1);
@@ -209,7 +214,8 @@ public:
 
 	virtual void BindOutputs(FOutputVertexInterfaceData& InOutVertexData) override
 	{
-		InOutVertexData.BindReadVertex("MonoOut", TDataReadReference<FAudioBuffer>(OutBufferWriteRef));
+		InOutVertexData.BindReadVertex("LOut", TDataReadReference<FAudioBuffer>(OutBufferLWriteRef));
+		InOutVertexData.BindReadVertex("ROut", TDataReadReference<FAudioBuffer>(OutBufferRWriteRef));
 		InOutVertexData.BindReadVertex("OnFinished", TDataReadReference<FTrigger>(OutOnFinishedRef));
 	}
 
@@ -260,6 +266,52 @@ public:
 
 			});
 
+
+		//const float* InputAudio = AudioInput->GetData();
+		float* LAudio = OutBufferLWriteRef->GetData();
+		float* RAudio = OutBufferRWriteRef->GetData();
+
+		const int32 NumSamples = OutBufferLWriteRef->Num();
+
+		//for (int32 Index = 0; Index < NumSamples; ++Index)
+		//{
+		//	OutputAudio[Index] = (*Amplitude) * InputAudio[Index];
+		//}
+
+		//// Create audio buffer
+		//int buffer_size = 1024;
+		//int num_channels = 2; // Stereo output
+		//float left_buffer[1024];
+		//float right_buffer[1024];
+
+		//// Create pointers to the buffers
+		//float* left_buffer_ptr = left_buffer;
+		//float* right_buffer_ptr = right_buffer;
+
+		memset(LAudio, 0, NumSamples * sizeof(float));
+		memset(RAudio, 0, NumSamples * sizeof(float));
+
+		float* arrays[] = {LAudio, RAudio};
+
+		int result = fluid_synth_process(synth, NumSamples, 0, NULL, 2, arrays);
+
+		if (result != FLUID_OK) {
+			//fprintf(stderr, "fluid_synth_process() failed\n");
+			UE_LOG(LogTemp, Error, TEXT("fluid_synth_process() failed"));
+		}
+
+		//for (int i = 0; i < buffer_size; i++)
+		//{
+		//	float value = left_buffer[i];
+
+		//	LAudio[i] = left_buffer[i];
+		//	RAudio[i] = right_buffer[i];
+
+		//	//if (value > 0.01)
+		//	//{
+		//	//	int v = 2;
+		//	//}
+		//}
 	}
 
 
@@ -304,7 +356,8 @@ private:
 	//WaveTable::FWaveTableSampler Sampler;
 
 	TDataWriteReference<FTrigger> OutOnFinishedRef;
-	TDataWriteReference<FAudioBuffer> OutBufferWriteRef;
+	TDataWriteReference<FAudioBuffer> OutBufferLWriteRef;
+	TDataWriteReference<FAudioBuffer> OutBufferRWriteRef;
 
 
 	fluid_settings_t* settings = nullptr;
@@ -363,13 +416,13 @@ int fluidsynth_callback(void* data, int len,
 	//	}
 	//}
 
-	//int32 bufferLength = d->OutBufferWriteRef->Num();
+	//int32 bufferLength = d->OutBufferLWriteRef->Num();
 	//for (int i = 0; i < FMath::Min(bufferLength, len); i++)
 	//{
-	//	d->OutBufferWriteRef->GetData()[i] = t2[i];
+	//	d->OutBufferLWriteRef->GetData()[i] = t2[i];
 	//}
 
-	//FAudioBuffer& OutBuffer = *d->OutBufferWriteRef;
+	//FAudioBuffer& OutBuffer = *d->OutBufferLWriteRef;
 	//OutBuffer.Zero();
 
 	//auto GetLastIndex = [](const FTriggerReadRef& Trigger)

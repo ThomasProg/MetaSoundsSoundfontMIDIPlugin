@@ -103,6 +103,7 @@ namespace Metasound
 		return MakeUnique<FVolumeOperator>(InParams.OperatorSettings, AudioIn, InAmplitude);
 	}
 
+	// https://github.com/alexirae/unreal-audio-dsp-template-UE5/blob/main/Plugins/AudioDSPTemplate/Source/AudioDSPTemplate/Private/MetasoundNodes/MetasoundVolumeNode.cpp
 	void FVolumeOperator::Execute()
 	{
 		const float* InputAudio = AudioInput->GetData();
@@ -110,8 +111,10 @@ namespace Metasound
 
 		const int32 NumSamples = AudioInput->Num();
 
-		//VolumeDSPProcessor.SetAmplitude(*Amplitude);
-		//VolumeDSPProcessor.ProcessAudioBuffer(InputAudio, OutputAudio, NumSamples);
+		for (int32 Index = 0; Index < NumSamples; ++Index)
+		{
+			OutputAudio[Index] = (*Amplitude) * InputAudio[Index];
+		}
 	}
 
 	METASOUND_REGISTER_NODE(FVolumeNode)
