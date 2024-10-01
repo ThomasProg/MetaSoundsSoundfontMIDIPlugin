@@ -34,11 +34,29 @@ public class FluidsynthWrapperLibrary : ModuleRules
 			"libwinpthread-1.dll"
 		};
 
-		foreach (string s in str)
-		{
-			PublicDelayLoadDLLs.Add(s);
-			RuntimeDependencies.Add(Path.Combine(BinDir, s));
-			Logger.LogTrace(Path.Combine(BinDir, s));
-		}
-	}
+        string OutputBinariesDir = "";
+
+        // Ensure the DLL is copied to the right binaries folder
+        if (Target.Platform == UnrealTargetPlatform.Win64)
+        {
+            OutputBinariesDir = Path.Combine(ModuleDirectory, "..", "..", "Binaries", "Win64");
+        }
+
+        System.Diagnostics.Debug.Assert(!string.IsNullOrEmpty(OutputBinariesDir), "BinariesDir should not be empty!");
+
+        foreach (string s in str)
+        {
+            PublicDelayLoadDLLs.Add(s);
+
+            string DestDLLPath = Path.Combine(ModuleDirectory, OutputBinariesDir, s);
+            string SrcDLLPath = Path.Combine(ModuleDirectory, BinDir, s);
+            RuntimeDependencies.Add(DestDLLPath, SrcDLLPath);
+
+            // include it in packaged builds
+            string PackagedDestDLLPath = Path.Combine("$(BinaryOutputDir)", s);
+            RuntimeDependencies.Add(PackagedDestDLLPath, SrcDLLPath);
+
+            Logger.LogTrace(Path.Combine(BinDir, s));
+        }
+    }
 }
