@@ -16,15 +16,21 @@ class FLUIDSYNTHWRAPPER_API USoundfontSubsystem : public UEngineSubsystem
 	GENERATED_BODY()
 	
 	fluid_audio_driver_t* driverCallback = nullptr;
-	TMap<FName, TObjectPtr<class USynthInstance>> SynthInstances;
-	TObjectPtr<class USynthSettings> DefaultSettings;
+
+	UPROPERTY()
+	TMap<FName, USynthInstance*> SynthInstances;
+
+	UPROPERTY()
+	class USynthSettings* DefaultSettings;
 
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
 	UFUNCTION(BlueprintCallable)
-	class USynthInstance* CreateSynthInstance(const FName& InstanceName, USynthSettings* Settings = nullptr);
+	USynthInstance* CreateSynthInstance(const FName& InstanceName, USynthSettings* Settings = nullptr);
 	UFUNCTION(BlueprintCallable)
-	class USynthInstance* GetSynthInstance(const FName& InstanceName) const;
+	USynthInstance* GetOrCreateSynthInstance(const FName& InstanceName, USynthSettings* Settings = nullptr);
+	UFUNCTION(BlueprintCallable)
+	USynthInstance* GetSynthInstance(const FName& InstanceName) const;
 };

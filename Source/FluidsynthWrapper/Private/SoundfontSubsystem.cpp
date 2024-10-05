@@ -34,8 +34,8 @@ USynthInstance* USoundfontSubsystem::CreateSynthInstance(const FName& InstanceNa
         return SynthInstances[InstanceName];
     }
 
-    TObjectPtr<class USynthSettings> SynthSettings = Settings ? Settings : DefaultSettings.Get();
-    TObjectPtr<class USynthInstance> Synth = USynthInstance::CreateInstance(Settings);
+    TObjectPtr<class USynthSettings> SynthSettings = Settings ? Settings : DefaultSettings;
+    class USynthInstance* Synth = USynthInstance::CreateInstance(SynthSettings).Get();
 
     if (!Synth)
     {
@@ -47,12 +47,19 @@ USynthInstance* USoundfontSubsystem::CreateSynthInstance(const FName& InstanceNa
     UE_LOG(LogTemp, Log, TEXT("FluidSynth instance '%s' created."), *InstanceName.ToString());
     return Synth;
 }
+
+USynthInstance* USoundfontSubsystem::GetOrCreateSynthInstance(const FName& InstanceName, USynthSettings* Settings)
+{
+    USynthInstance* ptr = GetSynthInstance(InstanceName);
+    if (ptr == nullptr)
+    {
+        ptr = CreateSynthInstance(InstanceName, Settings);
+    }
+
+    return ptr;
+}
+
 USynthInstance* USoundfontSubsystem::GetSynthInstance(const FName& InstanceName) const
 {
-    if (SynthInstances.Contains(InstanceName))
-    {
-        return SynthInstances[InstanceName];
-    }
-    UE_LOG(LogTemp, Warning, TEXT("FluidSynth instance '%s' not found."), *InstanceName.ToString());
-    return nullptr;
+    return SynthInstances.FindRef(InstanceName);
 }

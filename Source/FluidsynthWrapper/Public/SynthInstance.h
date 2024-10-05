@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include <fluidsynth.h>
+#include "Misc/SpinLock.h"
 #include "SynthInstance.generated.h"
 
 /**
@@ -15,7 +16,11 @@ class FLUIDSYNTHWRAPPER_API USynthInstance : public UObject
 {
 	GENERATED_BODY()
 	
+public:
 	fluid_synth_t* Instance = nullptr;
+	UE::FSpinLock FluidsynthLock;
+	//FCriticalSection FluidsynthLock;
+
 
 public:
 	static TObjectPtr< USynthInstance> CreateInstance(TObjectPtr<class USynthSettings> Settings);
@@ -96,9 +101,9 @@ public:
 	 * @{
 	 */
 	UFUNCTION(BlueprintCallable)
-	void sfload(const FString& filename, int32 reset_presets);
+	int32 sfload(const FString& filename, int32 reset_presets);
 	UFUNCTION(BlueprintCallable)
-	void sfreload(int32 id);
+	int32 sfreload(int32 id);
 	UFUNCTION(BlueprintCallable)
 	void sfunload(int32 id, int32 reset_presets);
 	//UFUNCTION(BlueprintCallable)
@@ -106,7 +111,7 @@ public:
 	//UFUNCTION(BlueprintCallable)
 	//void remove_sfont(fluid_sfont_t *sfont);
 	UFUNCTION(BlueprintCallable)
-	void sfcount();
+	int32 sfcount();
 	//UFUNCTION(BlueprintCallable)
 	//fluid_sfont_t* get_sfont(uint32 num);
 	//UFUNCTION(BlueprintCallable)
@@ -116,10 +121,79 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void set_bank_offset(int32 sfont_id, int32 offset);
 	UFUNCTION(BlueprintCallable)
-	void get_bank_offset(int32 sfont_id);
+	int32 get_bank_offset(int32 sfont_id);
 	/** @} Soundfont Management */
 
 
 
+
+	/**
+	 * @defgroup synthesis_params Synthesis Parameters
+	 * @ingroup synth
+	 *
+	 * Functions to control and query synthesis parameters like gain and
+	 * polyphony count.
+	 *
+	 * @{
+	 */
+	int count_midi_channels();
+	int count_audio_channels();
+	int count_audio_groups();
+	int count_effects_channels();
+	int count_effects_groups();
+
+	void set_gain(float gain);
+	float get_gain();
+	int set_polyphony(int polyphony);
+	int get_polyphony();
+	int get_active_voice_count();
+	int get_internal_bufsize();
+
+	///**
+	// * Synthesis interpolation method.
+	// */
+	//enum class fluid_interp
+	//{
+	//	FLUID_INTERP_NONE = 0,        /**< No interpolation: Fastest, but questionable audio quality */
+	//	FLUID_INTERP_LINEAR = 1,      /**< Straight-line interpolation: A bit slower, reasonable audio quality */
+	//	FLUID_INTERP_4THORDER = 4,    /**< Fourth-order interpolation, good quality, the default */
+	//	FLUID_INTERP_7THORDER = 7,    /**< Seventh-order interpolation */
+
+	//	FLUID_INTERP_DEFAULT = FLUID_INTERP_4THORDER, /**< Default interpolation method */
+	//	FLUID_INTERP_HIGHEST = FLUID_INTERP_7THORDER, /**< Highest interpolation method */
+	//};
+
+	//int fluid_synth_set_interp_method(fluid_synth_t *synth, int chan, fluid_interp interp_method);
+
+	///**
+	// * Enum used with fluid_synth_add_default_mod() to specify how to handle duplicate modulators.
+	// */
+	//enum class fluid_synth_add_mod
+	//{
+	//	FLUID_SYNTH_OVERWRITE,        /**< Overwrite any existing matching modulator */
+	//	FLUID_SYNTH_ADD,              /**< Sum up modulator amounts */
+	//};
+
+	//int fluid_synth_add_default_mod(fluid_synth_t *synth, const fluid_mod_t *mod, fluid_synth_add_mod mode);
+	//int fluid_synth_remove_default_mod(fluid_synth_t *synth, const fluid_mod_t *mod);
+	/** @} Synthesis Parameters */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	//UFUNCTION(BlueprintCallable)
+	void process(int32 len, int32 nfx, float* fx[], int32 nout, float* out[]);
+
 	friend class USoundfontSubsystem;
 };
+

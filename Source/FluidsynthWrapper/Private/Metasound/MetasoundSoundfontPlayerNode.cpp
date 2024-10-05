@@ -13,14 +13,13 @@
 #include "MetasoundTrigger.h"
 #include <fluidsynth.h>
 #include <DSP/MultichannelBuffer.h>
+#include "SoundfontSubsystem.h"
+#include "Engine/Engine.h"
+#include "SynthInstance.h"
 
 #define LOCTEXT_NAMESPACE "MetasoundMGF"
 
 using namespace Metasound;
-
-int fluidsynth_callback(void* data, int len,
-	int nfx, float* fx[],
-	int nout, float* out[]);
 
 class FMetaSoundSoundfontPlayerNodeOperator : public TExecutableOperator<FMetaSoundSoundfontPlayerNodeOperator>
 {
@@ -159,51 +158,31 @@ public:
 			BlockPeriod = 1.0f / BlockRate;
 		}
 
-		// Create settings and synth
-		settings = new_fluid_settings();
-		synth = new_fluid_synth(settings);
-
-		// Create an audio driver
-		//driverCallback = new_fluid_audio_driver(settings, synth);
-
-		// Load SoundFont
-		//fluid_synth_sfload(synth, "C:/Users/thoma/PandorasBox/Projects/ModularMusicGenerationModules/Assets/Soundfonts/Touhou/Touhou.sf2", 1);
-		FString RelativePath = FPaths::ProjectContentDir();
-
-		FString FullPath = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*RelativePath);
-		fluid_synth_sfload(synth, TCHAR_TO_UTF8 (*(FullPath + "/" + "Touhou.sf2")), 1);
+		TObjectPtr<USoundfontSubsystem> SfSubsys = GEngine->GetEngineSubsystem<USoundfontSubsystem>();
+		ensure(SfSubsys);
+		if (SfSubsys)
+		{
+			FName InstanceName = "test";
+			SynthInstance = SfSubsys->CreateSynthInstance(InstanceName);
+		}
 	}
 
 	virtual ~FMetaSoundSoundfontPlayerNodeOperator()
 	{
-		if (synth)
+		// Shut down
+		for (int32 i = 0; i < SynthInstance->count_midi_channels(); i++)
 		{
-			delete_fluid_synth(synth);
-			synth = nullptr;
-		}
-		if (settings)
-		{
-			delete_fluid_settings(settings);
-			settings = nullptr;
+			SynthInstance->all_notes_off(i);
 		}
 	}
 
 	virtual void BindInputs(FInputVertexInterfaceData& InOutVertexData) override
 	{
-		//InOutVertexData.BindReadVertex("WaveTableBank", WaveTableBankReadRef);
 		InOutVertexData.BindReadVertex("Key", KeyReadRef);
 		InOutVertexData.BindReadVertex("Velocity", VelocityReadRef);
 		InOutVertexData.BindReadVertex("Channel", ChannelReadRef);
 		InOutVertexData.BindReadVertex("Play", PlayReadRef);
 		InOutVertexData.BindReadVertex("Stop", StopReadRef);
-		//InOutVertexData.BindReadVertex("Sync", SyncReadRef);
-		//InOutVertexData.BindReadVertex("PitchShift", PitchShiftReadRef);
-		//InOutVertexData.BindReadVertex("Loop", LoopReadRef);
-
-		//if (PhaseModReadRef.IsSet())
-		//{
-		//	InOutVertexData.BindReadVertex("PhaseMod", *PhaseModReadRef);
-		//}
 	}
 
 	virtual void BindOutputs(FOutputVertexInterfaceData& InOutVertexData) override
@@ -239,10 +218,7 @@ public:
 			},
 			[this](int32 StartFrame, int32 EndFrame)
 			{
-				// Start playing a note (adjust the parameters as needed)
-				//fluid_synth_program_change(synth, 0, 0);
-				fluid_synth_noteon(synth, *ChannelReadRef, *KeyReadRef, *VelocityReadRef);
-
+				SynthInstance->noteon(*ChannelReadRef, *KeyReadRef, *VelocityReadRef);
 			});
 
 		StopReadRef->ExecuteBlock(
@@ -253,11 +229,7 @@ public:
 			},
 			[this](int32 StartFrame, int32 EndFrame)
 			{
-				// Start playing a note (adjust the parameters as needed)
-				//fluid_synth_program_change(synth, 0, 0);
-				//fluid_synth_noteon(synth, *ChannelReadRef, *KeyReadRef, *VelocityReadRef);
-				fluid_synth_noteoff(synth, *ChannelReadRef, *KeyReadRef);
-
+				SynthInstance->noteoff(*ChannelReadRef, *KeyReadRef);
 			});
 
 
@@ -267,60 +239,12 @@ public:
 
 		const int32 NumSamples = OutBufferLWriteRef->Num();
 
-		//for (int32 Index = 0; Index < NumSamples; ++Index)
-		//{
-		//	OutputAudio[Index] = (*Amplitude) * InputAudio[Index];
-		//}
-
-		//// Create audio buffer
-		//int buffer_size = 1024;
-		//int num_channels = 2; // Stereo output
-		//float left_buffer[1024];
-		//float right_buffer[1024];
-
-		//// Create pointers to the buffers
-		//float* left_buffer_ptr = left_buffer;
-		//float* right_buffer_ptr = right_buffer;
-
 		memset(LAudio, 0, NumSamples * sizeof(float));
 		memset(RAudio, 0, NumSamples * sizeof(float));
 
 		float* arrays[] = {LAudio, RAudio};
 
-		int result = fluid_synth_process(synth, NumSamples, 0, NULL, 2, arrays);
-
-		if (result != FLUID_OK) {
-			//fprintf(stderr, "fluid_synth_process() failed\n");
-			UE_LOG(LogTemp, Error, TEXT("fluid_synth_process() failed"));
-		}
-
-		//for (int i = 0; i < buffer_size; i++)
-		//{
-		//	float value = left_buffer[i];
-
-		//	LAudio[i] = left_buffer[i];
-		//	RAudio[i] = right_buffer[i];
-
-		//	//if (value > 0.01)
-		//	//{
-		//	//	int v = 2;
-		//	//}
-		//}
-	}
-
-
-	void Reset(const IOperator::FResetParams& InParams)
-	{
-		if (synth)
-		{
-			delete_fluid_synth(synth);
-			synth = nullptr;
-		}
-		if (settings)
-		{
-			delete_fluid_settings(settings);
-			settings = nullptr;
-		}
+		SynthInstance->process(NumSamples, 0, NULL, 2, arrays);
 	}
 
 private:
@@ -346,92 +270,8 @@ private:
 	TDataWriteReference<FAudioBuffer> OutBufferLWriteRef;
 	TDataWriteReference<FAudioBuffer> OutBufferRWriteRef;
 
-
-	fluid_settings_t* settings = nullptr;
-	fluid_synth_t* synth = nullptr;
-
-	friend int fluidsynth_callback(void* data, int len,
-		int nfx, float* fx[],
-		int nout, float* out[]);
+	USynthInstance* SynthInstance;
 };
-
-//int b = 0;
-
-// Callback function to process audio data
-int fluidsynth_callback(void* data, int len,
-	int nfx, float* fx[],
-	int nout, float* out[])
-{
-	FMetaSoundSoundfontPlayerNodeOperator* d = (FMetaSoundSoundfontPlayerNodeOperator*)data;
-
-	// Thank you a lot https://github.com/ensemblesaw/ensembles-app/blob/b16631a36882b6df9253a77d992eb78e9e0eedd2/src/Core/Synthesizer/providers/synthesizer_instance.c#L95
-	// for giving me an example of how new_fluid_audio_driver2 works
-	if (fx == 0)
-	{
-		/* Note that some audio drivers may not provide buffers for effects like
-		 * reverb and chorus. In this case it's your decision what to do. If you
-		 * had called fluid_synth_process() like in the else branch below, no
-		 * effects would have been rendered. Instead, you may mix the effects
-		 * directly into the out buffers. */
-		if (fluid_synth_process(d->synth, len, nout, out, nout, out) != FLUID_OK)
-		{
-			/* Some error occurred. Very unlikely to happen, though. */
-			return FLUID_FAILED;
-		}
-	}
-	else
-	{
-		/* Call the synthesizer to fill the output buffers with its
-		 * audio output. */
-		if (fluid_synth_process(d->synth, len, nfx, fx, nout, out) != FLUID_OK)
-		{
-			/* Some error occurred. Very unlikely to happen, though. */
-			return FLUID_FAILED;
-		}
-	}
-
-
-	//TArray<float> t1(out[0], len);
-	//TArray<float> t2(out[1], len);
-
-	//for (float f : t2)
-	//{
-	//	if (f > 0.05)
-	//	{
-	//		b += 2;
-	//	}
-	//}
-
-	//int32 bufferLength = d->OutBufferLWriteRef->Num();
-	//for (int i = 0; i < FMath::Min(bufferLength, len); i++)
-	//{
-	//	d->OutBufferLWriteRef->GetData()[i] = t2[i];
-	//}
-
-	//FAudioBuffer& OutBuffer = *d->OutBufferLWriteRef;
-	//OutBuffer.Zero();
-
-	//auto GetLastIndex = [](const FTriggerReadRef& Trigger)
-	//{
-	//	int32 LastIndex = -1;
-	//	Trigger->ExecuteBlock([](int32, int32) {}, [&LastIndex](int32 StartFrame, int32 EndFrame)
-	//		{
-	//			LastIndex = FMath::Max(LastIndex, StartFrame);
-	//		});
-	//	return LastIndex;
-	//};
-
-	//const int32 LastPlayIndex = GetLastIndex(d->PlayReadRef);
-	//const int32 LastStopIndex = GetLastIndex(d->StopReadRef);
-	//if (LastPlayIndex >= 0 || LastStopIndex >= 0)
-	//{
-	//	d->bPlaying = LastPlayIndex > LastStopIndex;
-	//}
-
-
-
-	return FLUID_OK;
-}
 
 class FMetaSoundSoundfontPlayerNode : public FNodeFacade
 {
