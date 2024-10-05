@@ -176,12 +176,6 @@ public:
 
 	virtual ~FMetaSoundSoundfontPlayerNodeOperator()
 	{
-		if (driverCallback)
-		{
-			delete_fluid_audio_driver(driverCallback);
-			driverCallback = nullptr;
-		}
-
 		if (synth)
 		{
 			delete_fluid_synth(synth);
@@ -317,13 +311,6 @@ public:
 
 	void Reset(const IOperator::FResetParams& InParams)
 	{
-
-		if (driverCallback)
-		{
-			delete_fluid_audio_driver(driverCallback);
-			driverCallback = nullptr;
-		}
-
 		if (synth)
 		{
 			delete_fluid_synth(synth);
@@ -362,7 +349,6 @@ private:
 
 	fluid_settings_t* settings = nullptr;
 	fluid_synth_t* synth = nullptr;
-	fluid_audio_driver_t* driverCallback = nullptr;
 
 	friend int fluidsynth_callback(void* data, int len,
 		int nfx, float* fx[],

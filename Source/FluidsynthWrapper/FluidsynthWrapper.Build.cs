@@ -28,6 +28,7 @@ public class FluidsynthWrapper : ModuleRules
 			{
 				"Core",
 				"CoreUObject",
+				"Engine",
 				"FluidsynthWrapperLibrary",
 				"Projects",
 				"MetasoundEngine",
