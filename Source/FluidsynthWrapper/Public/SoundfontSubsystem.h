@@ -23,14 +23,21 @@ class FLUIDSYNTHWRAPPER_API USoundfontSubsystem : public UEngineSubsystem
 	UPROPERTY()
 	class USynthSettings* DefaultSettings;
 
+	int32 uuid = 0;
+
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
+	UFUNCTION(BlueprintCallable)
+	USynthInstance* CreateNewSynthInstance(USynthSettings* Settings = nullptr);
 	UFUNCTION(BlueprintCallable)
 	USynthInstance* CreateSynthInstance(const FName& InstanceName, USynthSettings* Settings = nullptr);
 	UFUNCTION(BlueprintCallable)
 	USynthInstance* GetOrCreateSynthInstance(const FName& InstanceName, USynthSettings* Settings = nullptr);
 	UFUNCTION(BlueprintCallable)
 	USynthInstance* GetSynthInstance(const FName& InstanceName) const;
+
+	UFUNCTION(BlueprintCallable)
+	void Clear();
 };

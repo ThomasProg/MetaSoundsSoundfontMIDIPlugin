@@ -8,11 +8,28 @@
 #include "Misc/SpinLock.h"
 #include "SynthInstance.generated.h"
 
+class FSynthInstanceProxy;
+
+using FSynthInstanceProxyPtr = TSharedPtr<FSynthInstanceProxy, ESPMode::ThreadSafe>;
+class FSynthInstanceProxy final : public Audio::TProxyData<FSynthInstanceProxy>
+{
+public:
+	IMPL_AUDIOPROXY_CLASS(FSynthInstanceProxy);
+
+	FLUIDSYNTHWRAPPER_API explicit FSynthInstanceProxy(USynthInstance* InSynthInstance);
+
+	FSynthInstanceProxy(const FSynthInstanceProxy& Other) = default;
+
+	virtual ~FSynthInstanceProxy() override {}
+
+	USynthInstance* SynthInstance;
+};
+
 /**
  * 
  */
 UCLASS(BlueprintType)
-class FLUIDSYNTHWRAPPER_API USynthInstance : public UObject
+class FLUIDSYNTHWRAPPER_API USynthInstance : public UObject, public IAudioProxyDataFactory
 {
 	GENERATED_BODY()
 	
@@ -195,5 +212,10 @@ public:
 	void process(int32 len, int32 nfx, float* fx[], int32 nout, float* out[]);
 
 	friend class USoundfontSubsystem;
+
+
+	//~Begin IAudioProxyDataFactory Interface.
+	virtual TSharedPtr<Audio::IProxyData> CreateProxyData(const Audio::FProxyDataInitParams& InitParams) override;
+	//~ End IAudioProxyDataFactory Interface.
 };
 

@@ -26,6 +26,12 @@ void USoundfontSubsystem::Deinitialize()
     Super::Deinitialize();
 }
 
+USynthInstance* USoundfontSubsystem::CreateNewSynthInstance(USynthSettings* Settings)
+{
+    FString Name = "Generated_" + FString::FromInt(uuid);
+    return CreateSynthInstance(FName(*Name), Settings);
+}
+
 USynthInstance* USoundfontSubsystem::CreateSynthInstance(const FName& InstanceName, USynthSettings* Settings)
 {
     if (SynthInstances.Contains(InstanceName))
@@ -43,6 +49,7 @@ USynthInstance* USoundfontSubsystem::CreateSynthInstance(const FName& InstanceNa
         return nullptr;
     }
 
+    uuid += 1;
     SynthInstances.Add(InstanceName, Synth);
     UE_LOG(LogTemp, Log, TEXT("FluidSynth instance '%s' created."), *InstanceName.ToString());
     return Synth;
@@ -62,4 +69,14 @@ USynthInstance* USoundfontSubsystem::GetOrCreateSynthInstance(const FName& Insta
 USynthInstance* USoundfontSubsystem::GetSynthInstance(const FName& InstanceName) const
 {
     return SynthInstances.FindRef(InstanceName);
+}
+
+void USoundfontSubsystem::Clear()
+{
+    //for (auto [key, value] : SynthInstances)
+    //{
+    //    
+    //}
+
+    SynthInstances.Empty();
 }

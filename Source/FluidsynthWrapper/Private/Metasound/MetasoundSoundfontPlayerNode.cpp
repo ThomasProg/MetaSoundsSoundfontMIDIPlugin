@@ -16,6 +16,7 @@
 #include "SoundfontSubsystem.h"
 #include "Engine/Engine.h"
 #include "SynthInstance.h"
+#include "MetasoundSynthInstance.h"
 
 #define LOCTEXT_NAMESPACE "MetasoundMGF"
 
@@ -38,18 +39,23 @@ public:
 				//	}),
 				TInputDataVertex<int32>("Key", FDataVertexMetadata
 					{
-						LOCTEXT("MetaSoundSoundfontPlayerNode_InputKeyDesc", "Key of WaveTable Bank entry to play"),
+						LOCTEXT("MetaSoundSoundfontPlayerNode_InputKeyDesc", "Pitch of the played note"),
 						LOCTEXT("MetaSoundSoundfontPlayerNode_InputKeyName", "Key")
 					}),
 				TInputDataVertex<int32>("Velocity", FDataVertexMetadata
 					{
-						LOCTEXT("MetaSoundSoundfontPlayerNode_InputVelocityDesc", "Velocity of WaveTable Bank entry to play"),
+						LOCTEXT("MetaSoundSoundfontPlayerNode_InputVelocityDesc", "Intensity of the played note"),
 						LOCTEXT("MetaSoundSoundfontPlayerNode_InputVelocityName", "Velocity")
 					}),
 				TInputDataVertex<int32>("Channel", FDataVertexMetadata
 					{
-						LOCTEXT("MetaSoundSoundfontPlayerNode_InputChannelDesc", "Channel of WaveTable Bank entry to play"),
+						LOCTEXT("MetaSoundSoundfontPlayerNode_InputChannelDesc", "Channel of the played note"),
 						LOCTEXT("MetaSoundSoundfontPlayerNode_InputChannelName", "Channel")
+					}),
+				TInputDataVertex<FSynthInstance>("SynthInstance", FDataVertexMetadata
+					{
+						LOCTEXT("MetaSoundSoundfontPlayerNode_InputSynthInstanceDesc", "SynthInstance that is playing the note"),
+						LOCTEXT("MetaSoundSoundfontPlayerNode_InputSynthInstanceName", "SynthInstance")
 					})
 			),
 			FOutputVertexInterface(
@@ -109,6 +115,7 @@ public:
 		FInt32ReadRef InKeyReadRef = InputCollection.GetDataReadReferenceOrConstruct<int32>("Key");
 		FInt32ReadRef InVelocityReadRef = InputCollection.GetDataReadReferenceOrConstruct<int32>("Velocity");
 		FInt32ReadRef InChannelReadRef = InputCollection.GetDataReadReferenceOrConstruct<int32>("Channel");
+		FSynthInstanceReadRef InSynthInstanceReadRef = InputCollection.GetDataReadReferenceOrConstruct<FSynthInstance>("SynthInstance");
 		FTriggerReadRef InPlayReadRef = InputCollection.GetDataReadReferenceOrConstructWithVertexDefault<FTrigger>(InputInterface, "Play", InParams.OperatorSettings);
 		FTriggerReadRef InStopReadRef = InputCollection.GetDataReadReferenceOrConstructWithVertexDefault<FTrigger>(InputInterface, "Stop", InParams.OperatorSettings);
 		//FTriggerReadRef InSyncReadRef = InputCollection.GetDataReadReferenceOrConstructWithVertexDefault<FTrigger>(InputInterface, "Sync", InParams.OperatorSettings);
@@ -121,7 +128,7 @@ public:
 		//	InPhaseModReadRef = InputCollection.GetDataReadReference<FAudioBuffer>("PhaseMod");
 		//}
 
-		return MakeUnique<FMetaSoundSoundfontPlayerNodeOperator>(InParams, /*InWaveTableBankReadRef,*/ InKeyReadRef, InVelocityReadRef, InChannelReadRef, InPlayReadRef, InStopReadRef/*, MoveTemp(InPhaseModReadRef)*/);
+		return MakeUnique<FMetaSoundSoundfontPlayerNodeOperator>(InParams, /*InWaveTableBankReadRef,*/ InKeyReadRef, InVelocityReadRef, InChannelReadRef, InSynthInstanceReadRef, InPlayReadRef, InStopReadRef/*, MoveTemp(InPhaseModReadRef)*/);
 	}
 
 	FMetaSoundSoundfontPlayerNodeOperator(
@@ -130,6 +137,7 @@ public:
 		const FInt32ReadRef& InKeyReadRef,
 		const FInt32ReadRef& InVelocityReadRef,
 		const FInt32ReadRef& InChannelReadRef,
+		const FSynthInstanceReadRef& InSynthInstanceReadRef,
 		const FTriggerReadRef& InPlayReadRef,
 		const FTriggerReadRef& InStopReadRef
 		//const FTriggerReadRef& InSyncReadRef,
@@ -142,6 +150,7 @@ public:
 		, KeyReadRef(InKeyReadRef)
 		, VelocityReadRef(InVelocityReadRef)
 		, ChannelReadRef(InChannelReadRef)
+		, SynthInstanceReadRef(InSynthInstanceReadRef)
 		, PlayReadRef(InPlayReadRef)
 		, StopReadRef(InStopReadRef)
 		//, SyncReadRef(InSyncReadRef)
@@ -157,23 +166,18 @@ public:
 		{
 			BlockPeriod = 1.0f / BlockRate;
 		}
-
-		TObjectPtr<USoundfontSubsystem> SfSubsys = GEngine->GetEngineSubsystem<USoundfontSubsystem>();
-		ensure(SfSubsys);
-		if (SfSubsys)
-		{
-			FName InstanceName = "test";
-			SynthInstance = SfSubsys->CreateSynthInstance(InstanceName);
-		}
 	}
 
 	virtual ~FMetaSoundSoundfontPlayerNodeOperator()
 	{
 		// Shut down
-		for (int32 i = 0; i < SynthInstance->count_midi_channels(); i++)
-		{
-			SynthInstance->all_notes_off(i);
-		}
+		//if (SynthInstance)
+		//{
+		//	for (int32 i = 0; i < SynthInstance->count_midi_channels(); i++)
+		//	{
+		//		SynthInstance->all_notes_off(i);
+		//	}
+		//}
 	}
 
 	virtual void BindInputs(FInputVertexInterfaceData& InOutVertexData) override
@@ -181,6 +185,7 @@ public:
 		InOutVertexData.BindReadVertex("Key", KeyReadRef);
 		InOutVertexData.BindReadVertex("Velocity", VelocityReadRef);
 		InOutVertexData.BindReadVertex("Channel", ChannelReadRef);
+		InOutVertexData.BindReadVertex("SynthInstance", SynthInstanceReadRef);
 		InOutVertexData.BindReadVertex("Play", PlayReadRef);
 		InOutVertexData.BindReadVertex("Stop", StopReadRef);
 	}
@@ -208,8 +213,24 @@ public:
 		return {};
 	}
 
+	TWeakObjectPtr<USynthInstance> SynthInstance = nullptr;
 	void Execute()
 	{
+		if (SynthInstanceReadRef.Get() != nullptr && SynthInstanceReadRef->GetSynthInstanceProxy() && SynthInstanceReadRef->GetSynthInstanceProxy()->SynthInstance)
+		{
+			SynthInstance = SynthInstanceReadRef->GetSynthInstanceProxy()->SynthInstance;
+		}
+		else if (SynthInstance == nullptr) // @TODO : optimize for runtime? put in constructor if not bound?
+		{
+			TObjectPtr<USoundfontSubsystem> SfSubsys = GEngine->GetEngineSubsystem<USoundfontSubsystem>();
+			ensure(SfSubsys);
+			if (SfSubsys)
+			{
+				SynthInstance = SfSubsys->CreateNewSynthInstance();
+			}
+		}
+
+
 		PlayReadRef->ExecuteBlock(
 			[&](int32 StartFrame, int32 EndFrame)
 			{
@@ -229,8 +250,13 @@ public:
 			},
 			[this](int32 StartFrame, int32 EndFrame)
 			{
-				SynthInstance->noteoff(*ChannelReadRef, *KeyReadRef);
+				if (SynthInstance.IsValid())
+				{
+					SynthInstance->noteoff(*ChannelReadRef, *KeyReadRef);
+				}
 			});
+
+		
 
 
 		//const float* InputAudio = AudioInput->GetData();
@@ -244,7 +270,10 @@ public:
 
 		float* arrays[] = {LAudio, RAudio};
 
-		SynthInstance->process(NumSamples, 0, NULL, 2, arrays);
+		if (SynthInstance.IsValid())
+		{
+			SynthInstance->process(NumSamples, 0, NULL, 2, arrays);
+		}
 	}
 
 private:
@@ -258,6 +287,9 @@ private:
 	FInt32ReadRef ChannelReadRef;
 	FTriggerReadRef PlayReadRef;
 	FTriggerReadRef StopReadRef;
+
+	FSynthInstanceReadRef SynthInstanceReadRef;
+
 	//FTriggerReadRef SyncReadRef;
 	//FFloatReadRef PitchShiftReadRef;
 	//FBoolReadRef LoopReadRef;
@@ -270,7 +302,7 @@ private:
 	TDataWriteReference<FAudioBuffer> OutBufferLWriteRef;
 	TDataWriteReference<FAudioBuffer> OutBufferRWriteRef;
 
-	USynthInstance* SynthInstance;
+	//USynthInstance* SynthInstance;
 };
 
 class FMetaSoundSoundfontPlayerNode : public FNodeFacade

@@ -4,6 +4,19 @@
 #include "SynthInstance.h"
 #include "SynthSettings.h"
 
+#include "MetasoundDataTypeRegistrationMacro.h"
+#include "MetasoundSynthInstance.h"
+
+REGISTER_METASOUND_DATATYPE(Metasound::FSynthInstance, "SynthInstance", Metasound::ELiteralType::UObjectProxy, USynthInstance);
+
+FSynthInstanceProxy::FSynthInstanceProxy(USynthInstance* InSynthInstance)
+{
+	if (InSynthInstance)
+	{
+		SynthInstance = InSynthInstance;
+	}
+}
+
 TObjectPtr<USynthInstance> USynthInstance::CreateInstance(TObjectPtr<USynthSettings> Settings)
 {
 	TObjectPtr<USynthInstance> Synth = NewObject<USynthInstance>();
@@ -369,4 +382,11 @@ int USynthInstance::get_internal_bufsize()
 {
 	UE::TScopeLock<UE::FSpinLock> ScopeLock(FluidsynthLock);
 	return fluid_synth_get_internal_bufsize(Instance);
+}
+
+
+
+TSharedPtr<Audio::IProxyData> USynthInstance::CreateProxyData(const Audio::FProxyDataInitParams& InitParams)
+{
+	return MakeShared<FSynthInstanceProxy, ESPMode::ThreadSafe>(this);;
 }
