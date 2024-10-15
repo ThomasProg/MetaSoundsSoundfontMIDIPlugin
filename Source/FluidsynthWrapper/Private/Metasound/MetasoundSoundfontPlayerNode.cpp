@@ -30,8 +30,8 @@ public:
 	{
 		static const FVertexInterface DefaultInterface(
 			FInputVertexInterface(
-				TInputDataVertex<FTrigger>("Play", FDataVertexMetadata{ LOCTEXT("MetaSoundSoundfontPlayerNode_InputPlayDesc", "Plays the wavetable") }),
-				TInputDataVertex<FTrigger>("Stop", FDataVertexMetadata{ LOCTEXT("MetaSoundSoundfontPlayerNode_InputStopDesc", "Stops the wavetable") }),
+				TInputDataVertex<FTrigger>("Play", FDataVertexMetadata{ LOCTEXT("MetaSoundSoundfontPlayerNode_InputPlayDesc", "Plays the given note") }),
+				TInputDataVertex<FTrigger>("Stop", FDataVertexMetadata{ LOCTEXT("MetaSoundSoundfontPlayerNode_InputStopDesc", "Stops any note from playing") }),
 				//TInputDataVertex<FWaveTableBankAsset>("Soundfont", FDataVertexMetadata
 				//	{
 				//		LOCTEXT("MetaSoundSoundfontPlayerNode_InputBankDesc", "WaveTable Bank to playback from"),
@@ -61,18 +61,18 @@ public:
 			FOutputVertexInterface(
 				TOutputDataVertex<FAudioBuffer>("LOut", FDataVertexMetadata
 					{
-						LOCTEXT("MetaSoundWaveTablePlayer_OutputMonoOutDesc", "L output audio from player"),
-						LOCTEXT("MetaSoundWaveTablePlayer_OutputMonoOutName", "LOut")
+						LOCTEXT("MetaSoundSoundfontPlayerNode_OutputMonoOutDesc", "L output audio from player"),
+						LOCTEXT("MetaSoundSoundfontPlayerNode_OutputMonoOutName", "LOut")
 					}),
 				TOutputDataVertex<FAudioBuffer>("ROut", FDataVertexMetadata
 					{
-						LOCTEXT("MetaSoundWaveTablePlayer_OutputMonoOutDesc", "R output audio from player"),
-						LOCTEXT("MetaSoundWaveTablePlayer_OutputMonoOutName", "ROut")
+						LOCTEXT("MetaSoundSoundfontPlayerNode_OutputMonoOutDesc", "R output audio from player"),
+						LOCTEXT("MetaSoundSoundfontPlayerNode_OutputMonoOutName", "ROut")
 					}),
 				TOutputDataVertex<FTrigger>("OnFinished", FDataVertexMetadata
 					{
 						LOCTEXT("MetaSoundSoundfontPlayerNode_OnFinished", "Trigger executed when player is complete (if not looping) or stop is triggered"),
-						LOCTEXT("MetaSoundWaveTablePlayer_OutputOnFinishedName", "On Finished")
+						LOCTEXT("MetaSoundSoundfontPlayerNode_OutputOnFinishedName", "On Finished")
 					})
 			)
 		);
