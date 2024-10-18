@@ -35,21 +35,24 @@ TObjectPtr<USynthInstance> USynthInstance::CreateInstance(TObjectPtr<USynthSetti
 
 	FString FullPath = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*RelativePath);
 
-	Synth->sfload(*(FullPath + "/" + "Touhou.sf2"), 1);
+	//Synth->sfload(*(FullPath + "/soundfonts/" + "Touhou.sf2"), 1);
+	Synth->sfload(*(FullPath + "/soundfonts/" + "SGM.sf2"), 1);
 
 	delete_fluid_settings(SettingsInstance);
 
 	return Synth;
 }
 
-USynthInstance::~USynthInstance()
+void USynthInstance::BeginDestroy()
 {
+	UE::TScopeLock<UE::FSpinLock> ScopeLock(FluidsynthLock);
 	if (Instance != nullptr)
 	{
-		UE::TScopeLock<UE::FSpinLock> ScopeLock(FluidsynthLock);
 		delete_fluid_synth(Instance);
 		Instance = nullptr;
 	}
+
+	Super::BeginDestroy();
 }
 
 
@@ -58,13 +61,20 @@ void USynthInstance::noteon(int32 chan, int32 key, int32 vel)
 	UE::TScopeLock<UE::FSpinLock> ScopeLock(FluidsynthLock);
 	int32 result = fluid_synth_noteon(Instance, chan, key, vel);
 	verifyf(result == FLUID_OK, TEXT("noteon: Failed"));
+	onNotes.Add(FIntVector2(key, chan));
 }
 
 void USynthInstance::noteoff(int32 chan, int32 key)
 {
 	UE::TScopeLock<UE::FSpinLock> ScopeLock(FluidsynthLock);
+
+	FIntVector2 val = FIntVector2(key, chan);
+	if (!onNotes.Contains(val))
+		return;
+
 	int32 result = fluid_synth_noteoff(Instance, chan, key);
-	verifyf(result == FLUID_OK, TEXT("noteoff: Failed"));
+	//verifyf(result == FLUID_OK, TEXT("noteoff: Failed"));
+	onNotes.Remove(val);
 }
 
 void USynthInstance::cc(int32 chan, int32 ctrl, int32 val)

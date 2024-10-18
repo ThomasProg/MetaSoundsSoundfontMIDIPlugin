@@ -38,10 +38,13 @@ public:
 	UE::FSpinLock FluidsynthLock;
 	//FCriticalSection FluidsynthLock;
 
+	// Key, channel
+	TSet<FIntVector2> onNotes;
+
 
 public:
 	static TObjectPtr< USynthInstance> CreateInstance(TObjectPtr<class USynthSettings> Settings);
-	~USynthInstance();
+	virtual void BeginDestroy() override;
 
 
 	/**

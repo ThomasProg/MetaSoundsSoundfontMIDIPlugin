@@ -30,12 +30,12 @@
 #include "SoundfontInstrument.h"
 
 // Required for ensuring the node is supported by all languages in engine. Must be unique per MetaSound.
-#define LOCTEXT_NAMESPACE "MetasoundStandardNodes_MetaSoundTutorialNode"
+#define LOCTEXT_NAMESPACE "MetasoundStandardNodes_MetaSoundSoundfontMIDIStreamPlayerNode"
 
 namespace Metasound
 {
 	// Vertex Names - define your node's inputs and outputs here
-	namespace TutorialNodeNames
+	namespace SoundfontMIDIStreamPlayerNodeNames
 	{
 		METASOUND_PARAM(InputMidiStream, "MidiStream", "MidiStream that is synthesized.");
 		METASOUND_PARAM(InputSynthInstance, "SynthInstance", "The synth synthesizing the midi stream");
@@ -46,11 +46,11 @@ namespace Metasound
 
 
 	// Operator Class - defines the way your node is described, created and executed
-	class FTutorialOperator : public TExecutableOperator<FTutorialOperator>, public FSoundfontInstrument
+	class FSoundfontMIDIStreamPlayerOperator : public TExecutableOperator<FSoundfontMIDIStreamPlayerOperator>, public FSoundfontInstrument
 	{
 	public:
 		// Constructor
-		FTutorialOperator(const Metasound::FBuildOperatorParams& InParams,
+		FSoundfontMIDIStreamPlayerOperator(const Metasound::FBuildOperatorParams& InParams,
 			const HarmonixMetasound::FMidiStreamReadRef& InMidiStream,
 			Metasound::FSynthInstanceReadRef InSynthInstance,
 			const FTriggerReadRef& InPlayReadRef)
@@ -58,7 +58,7 @@ namespace Metasound
 			, Outputs{ TDataWriteReferenceFactory<FAudioBuffer>::CreateAny(InParams.OperatorSettings), TDataWriteReferenceFactory<FAudioBuffer>::CreateAny(InParams.OperatorSettings) }
 			//: InputA(InAValue)
 			//, InputB(InBValue)
-			//, TutorialNodeOutput(FFloatWriteRef::CreateNew(*InputA + *InputB))
+			//, SoundfontMIDIStreamPlayerNodeOutput(FFloatWriteRef::CreateNew(*InputA + *InputB))
 		{
 			Reset(InParams);
 			Init();
@@ -67,7 +67,7 @@ namespace Metasound
 		// Helper function for constructing vertex interface
 		static const FVertexInterface& DeclareVertexInterface()
 		{
-			using namespace TutorialNodeNames;
+			using namespace SoundfontMIDIStreamPlayerNodeNames;
 
 			static const FVertexInterface Interface(
 				FInputVertexInterface(
@@ -93,11 +93,11 @@ namespace Metasound
 
 					FNodeClassMetadata Metadata
 					{
-						FNodeClassName { StandardNodes::Namespace, "Tutorial Node", StandardNodes::AudioVariant },
+						FNodeClassName { StandardNodes::Namespace, "SoundfontMIDIStreamPlayer Node", StandardNodes::AudioVariant },
 						1, // Major Version
 						0, // Minor Version
-						METASOUND_LOCTEXT("TutorialNodeDisplayName", "Tutorial Node"),
-						METASOUND_LOCTEXT("TutorialNodeDesc", "A simple node to demonstrate how to create new MetaSound nodes in C++. Adds two floats together"),
+						METASOUND_LOCTEXT("SoundfontMIDIStreamPlayerNodeDisplayName", "SoundfontMIDIStreamPlayer Node"),
+						METASOUND_LOCTEXT("SoundfontMIDIStreamPlayerNodeDesc", "A simple node to demonstrate how to create new MetaSound nodes in C++. Adds two floats together"),
 						PluginAuthor,
 						PluginNodeMissingPrompt,
 						NodeInterface,
@@ -147,7 +147,7 @@ namespace Metasound
 		// Allows MetaSound graph to interact with your node's inputs
 		virtual FDataReferenceCollection GetInputs() const override
 		{
-			using namespace TutorialNodeNames;
+			using namespace SoundfontMIDIStreamPlayerNodeNames;
 
 			FDataReferenceCollection InputDataReferences;
 
@@ -160,11 +160,11 @@ namespace Metasound
 		// Allows MetaSound graph to interact with your node's outputs
 		virtual FDataReferenceCollection GetOutputs() const override
 		{
-			using namespace TutorialNodeNames;
+			using namespace SoundfontMIDIStreamPlayerNodeNames;
 
 			FDataReferenceCollection OutputDataReferences;
 
-			//OutputDataReferences.AddDataReadReference(METASOUND_GET_PARAM_NAME(OutputAudioLeft), TutorialNodeOutput);
+			//OutputDataReferences.AddDataReadReference(METASOUND_GET_PARAM_NAME(OutputAudioLeft), SoundfontMIDIStreamPlayerNodeOutput);
 			OutputDataReferences.AddDataReadReference(METASOUND_GET_PARAM_NAME(OutputAudioLeft), Outputs.AudioLeft);
 			OutputDataReferences.AddDataReadReference(METASOUND_GET_PARAM_NAME(OutputAudioRight), Outputs.AudioRight);
 
@@ -178,7 +178,7 @@ namespace Metasound
 			HarmonixMetasound::FMidiStreamReadRef InMidiStream = InputData.GetOrConstructDataReadReference<HarmonixMetasound::FMidiStream>("MidiStream");
 			FSynthInstanceReadRef InSynthInstance = InputData.GetOrConstructDataReadReference<FSynthInstance>("SynthInstance");
 			FTriggerReadRef InPlayReadRef = InputData.GetOrConstructDataReadReference<FTrigger>( "Play", InParams.OperatorSettings);
-			return MakeUnique<FTutorialOperator>(InParams, InMidiStream, InSynthInstance, InPlayReadRef);
+			return MakeUnique<FSoundfontMIDIStreamPlayerOperator>(InParams, InMidiStream, InSynthInstance, InPlayReadRef);
 		}
 
 		void Init()
@@ -531,11 +531,11 @@ public:
 	};
 
 	// Node Class - Inheriting from FNodeFacade is recommended for nodes that have a static FVertexInterface
-	class FTutorialNode : public FNodeFacade
+	class FSoundfontMIDIStreamPlayerNode : public FNodeFacade
 	{
 	public:
-		FTutorialNode(const FNodeInitData& InitData)
-			: FNodeFacade(InitData.InstanceName, InitData.InstanceID, TFacadeOperatorClass<FTutorialOperator>())
+		FSoundfontMIDIStreamPlayerNode(const FNodeInitData& InitData)
+			: FNodeFacade(InitData.InstanceName, InitData.InstanceID, TFacadeOperatorClass<FSoundfontMIDIStreamPlayerOperator>())
 		{
 		}
 	};
@@ -546,7 +546,7 @@ public:
 
 
 	// Register node
-	METASOUND_REGISTER_NODE(FTutorialNode);
+	METASOUND_REGISTER_NODE(FSoundfontMIDIStreamPlayerNode);
 }
 
 

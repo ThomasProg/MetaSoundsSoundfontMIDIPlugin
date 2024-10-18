@@ -1,3 +1,5 @@
+#pragma once
+
 //#include "DSPProcessing/Volume.h"
 #include "MetasoundEnumRegistrationMacro.h"
 #include "MetasoundParamHelper.h"

@@ -17,11 +17,15 @@ public:
 
 	//*************************************************************************
 	// PInstrument state and MIDI message handling
-	virtual void  NoteOn(FMidiVoiceId InVoiceId, int8 MidiNoteNumber, int8 Velocity, int8 MidiChannel = 0, int32 EventTick = 0, int32 CurrentTick = 0, float MsOffset = 0.0f) override;
-	virtual void  NoteOnWithFrameOffset(FMidiVoiceId InVoiceId, int8 MidiNoteNumber, int8 Velocity, int8 MidiChannel = 0, int32 NumFrames = 0) override;
-	virtual bool  NoteIsOn(int8 MidiNoteNumber, int8 MidiChannel = 0) override;
-	virtual void  NoteOff(FMidiVoiceId InVoiceId, int8 MidiNoteNumber, int8 MidiChannel = 0) override;
-	virtual void  NoteOffWithFrameOffset(FMidiVoiceId InVoiceId, int8 MidiNoteNumber, int8 MidiChannel = 0, int32 NumFrames = 0) override;
+
+	// Adding ProgramChange Handle
+	virtual void HandleMidiMessage(FMidiVoiceId InVoiceId, int8 InStatus, int8 InData1, int8 InData2, int32 InEventTick = 0, int32 InCurrentTick = 0, float InMsOffset = 0.0f) override;
+	virtual void NoteOn(FMidiVoiceId InVoiceId, int8 MidiNoteNumber, int8 Velocity, int8 MidiChannel = 0, int32 EventTick = 0, int32 CurrentTick = 0, float MsOffset = 0.0f) override;
+	virtual void NoteOnWithFrameOffset(FMidiVoiceId InVoiceId, int8 MidiNoteNumber, int8 Velocity, int8 MidiChannel = 0, int32 NumFrames = 0) override;
+	virtual bool NoteIsOn(int8 MidiNoteNumber, int8 MidiChannel = 0) override;
+	virtual void NoteOff(FMidiVoiceId InVoiceId, int8 MidiNoteNumber, int8 MidiChannel = 0) override;
+	virtual void NoteOffWithFrameOffset(FMidiVoiceId InVoiceId, int8 MidiNoteNumber, int8 MidiChannel = 0, int32 NumFrames = 0) override;
+	virtual void ProgramChange(FMidiVoiceId InVoiceId, int8 InProgram, int8 MidiChannel);
 
 	// pitch bend value, on range [-1.0, 1.0]
 	virtual void  SetPitchBend(float InValue, int8 InMidiChannel = 0) override;
