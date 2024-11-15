@@ -192,9 +192,9 @@ public:
 
 	virtual void BindOutputs(FOutputVertexInterfaceData& InOutVertexData) override
 	{
-		InOutVertexData.BindReadVertex("LOut", TDataReadReference<FAudioBuffer>(OutBufferLWriteRef));
-		InOutVertexData.BindReadVertex("ROut", TDataReadReference<FAudioBuffer>(OutBufferRWriteRef));
-		InOutVertexData.BindReadVertex("OnFinished", TDataReadReference<FTrigger>(OutOnFinishedRef));
+		InOutVertexData.BindWriteVertex("LOut", TDataWriteReference<FAudioBuffer>(OutBufferLWriteRef));
+		InOutVertexData.BindWriteVertex("ROut", TDataWriteReference<FAudioBuffer>(OutBufferRWriteRef));
+		InOutVertexData.BindWriteVertex("OnFinished", TDataWriteReference<FTrigger>(OutOnFinishedRef));
 	}
 
 	virtual FDataReferenceCollection GetInputs() const override
@@ -226,7 +226,7 @@ public:
 			ensure(SfSubsys);
 			if (SfSubsys)
 			{
-				SynthInstance = SfSubsys->CreateNewSynthInstance();
+				SynthInstance = SfSubsys->CreateNewSynthInstance(NAME_None);
 			}
 		}
 

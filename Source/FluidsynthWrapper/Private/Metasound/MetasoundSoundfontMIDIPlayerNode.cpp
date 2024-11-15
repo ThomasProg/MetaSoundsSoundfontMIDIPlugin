@@ -138,8 +138,8 @@ namespace Metasound
 
 		virtual void BindOutputs(FOutputVertexInterfaceData& InOutVertexData) override
 		{
-			InOutVertexData.BindReadVertex("OutputAudioLeft", TDataReadReference<FAudioBuffer>(Outputs.AudioLeft));
-			InOutVertexData.BindReadVertex("OutputAudioRight", TDataReadReference<FAudioBuffer>(Outputs.AudioRight));
+			InOutVertexData.BindWriteVertex("OutputAudioLeft", TDataWriteReference<FAudioBuffer>(Outputs.AudioLeft));
+			InOutVertexData.BindWriteVertex("OutputAudioRight", TDataWriteReference<FAudioBuffer>(Outputs.AudioRight));
 		}
 
 
@@ -224,7 +224,7 @@ public:
 				ensure(SfSubsys);
 				if (SfSubsys)
 				{
-					SynthInstance = SfSubsys->CreateNewSynthInstance();
+					SynthInstance = SfSubsys->CreateNewSynthInstance(NAME_None);
 				}
 			}
 

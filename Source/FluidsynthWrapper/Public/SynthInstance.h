@@ -22,7 +22,7 @@ public:
 
 	virtual ~FSynthInstanceProxy() override {}
 
-	USynthInstance* SynthInstance;
+	USynthInstance* SynthInstance = nullptr;
 };
 
 /**

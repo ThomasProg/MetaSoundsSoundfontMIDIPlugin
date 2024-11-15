@@ -26,10 +26,15 @@ void USoundfontSubsystem::Deinitialize()
     Super::Deinitialize();
 }
 
-USynthInstance* USoundfontSubsystem::CreateNewSynthInstance(USynthSettings* Settings)
+USynthInstance* USoundfontSubsystem::CreateNewSynthInstance(FName InstanceName, USynthSettings* Settings)
 {
-    FString Name = "Generated_" + FString::FromInt(uuid);
-    return CreateSynthInstance(FName(*Name), Settings);
+    if (InstanceName.IsNone())
+    {
+        FString NameStr = "Generated_" + FString::FromInt(uuid);
+        InstanceName = FName(*NameStr);
+    }
+    SynthInstances.Remove(InstanceName);
+    return CreateSynthInstance(InstanceName, Settings);
 }
 
 USynthInstance* USoundfontSubsystem::CreateSynthInstance(const FName& InstanceName, USynthSettings* Settings)

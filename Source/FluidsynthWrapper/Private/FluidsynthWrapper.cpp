@@ -41,7 +41,11 @@ void FFluidsynthWrapperModule::StartupModule()
 	}
 	else
 	{
-		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("ThirdPartyLibraryError", "Failed to load example third party library"));
+		FText ErrorMessage = FText::Format(
+			LOCTEXT("ThirdPartyLibraryError", "FluidsynthWrapper: Failed to load the library at path: {0}"),
+			FText::FromString(LibraryPath)
+		);
+		FMessageDialog::Open(EAppMsgType::Ok, ErrorMessage);
 	}
 
 	FMetasoundFrontendRegistryContainer::Get()->RegisterPendingNodes();

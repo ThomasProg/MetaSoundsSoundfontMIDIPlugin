@@ -30,7 +30,7 @@ public:
 	virtual void Deinitialize() override;
 
 	UFUNCTION(BlueprintCallable)
-	USynthInstance* CreateNewSynthInstance(USynthSettings* Settings = nullptr);
+	USynthInstance* CreateNewSynthInstance(FName InstanceName, USynthSettings* Settings = nullptr);
 	UFUNCTION(BlueprintCallable)
 	USynthInstance* CreateSynthInstance(const FName& InstanceName, USynthSettings* Settings = nullptr);
 	UFUNCTION(BlueprintCallable)

@@ -31,6 +31,8 @@ TObjectPtr<USynthInstance> USynthInstance::CreateInstance(TObjectPtr<USynthSetti
 
 	Synth->Instance = new_fluid_synth(SettingsInstance);
 
+	// @TODO : load default soundfont from settings file
+
 	FString RelativePath = FPaths::ProjectContentDir();
 
 	FString FullPath = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*RelativePath);
@@ -260,7 +262,7 @@ int32 USynthInstance::sfload(const FString& filename, int32 reset_presets)
 {
 	UE::TScopeLock<UE::FSpinLock> ScopeLock(FluidsynthLock);
 	int32 result = fluid_synth_sfload(Instance, TCHAR_TO_UTF8(*filename), reset_presets);
-	verifyf(result != FLUID_FAILED, TEXT("sfload: Failed"));
+	verifyf(result != FLUID_FAILED, TEXT("sfload: Failed loading %s"), *filename);
 	return result;
 }
 int32 USynthInstance::sfreload(int32 id)
