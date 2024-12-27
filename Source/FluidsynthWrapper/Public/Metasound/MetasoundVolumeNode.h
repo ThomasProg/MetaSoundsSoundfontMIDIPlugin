@@ -1,3 +1,5 @@
+// Copyright Prog'z. All Rights Reserved.
+
 #pragma once
 
 //#include "DSPProcessing/Volume.h"

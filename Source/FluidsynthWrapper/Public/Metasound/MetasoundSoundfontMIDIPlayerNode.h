@@ -1,4 +1,4 @@
-// Copyright Progz. All Rights Reserved.
+// Copyright Prog'z. All Rights Reserved.
 
 #pragma once
 

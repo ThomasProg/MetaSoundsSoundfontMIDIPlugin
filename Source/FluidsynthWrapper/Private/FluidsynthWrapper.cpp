@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Prog'z. All Rights Reserved.
 
 #include "FluidsynthWrapper.h"
 #include "Misc/MessageDialog.h"

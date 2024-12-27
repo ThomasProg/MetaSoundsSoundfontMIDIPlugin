@@ -1,3 +1,5 @@
+// Copyright Prog'z. All Rights Reserved.
+
 #include "Metasound/MetasoundVolumeNode.h"
 
 #define LOCTEXT_NAMESPACE "MetasoundNodeTemplate_VolumeNode"
