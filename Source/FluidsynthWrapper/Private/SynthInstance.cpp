@@ -399,5 +399,5 @@ int USynthInstance::get_internal_bufsize()
 
 TSharedPtr<Audio::IProxyData> USynthInstance::CreateProxyData(const Audio::FProxyDataInitParams& InitParams)
 {
-	return MakeShared<FSynthInstanceProxy, ESPMode::ThreadSafe>(this);;
+	return MakeShared<FSynthInstanceProxy, ESPMode::ThreadSafe>(this);
 }
