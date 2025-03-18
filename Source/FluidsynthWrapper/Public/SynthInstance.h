@@ -214,6 +214,16 @@ public:
 	//UFUNCTION(BlueprintCallable)
 	void process(int32 len, int32 nfx, float* fx[], int32 nout, float* out[]);
 
+	void fluid_synth_write_float(
+		int 	len,
+		void*	lout,
+		int 	loff,
+		int 	lincr,
+		void*	rout,
+		int 	roff,
+		int 	rincr
+	);
+
 	friend class USoundfontSubsystem;
 
 

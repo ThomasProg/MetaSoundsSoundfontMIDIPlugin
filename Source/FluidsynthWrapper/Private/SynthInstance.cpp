@@ -334,7 +334,20 @@ void USynthInstance::process(int32 len, int32 nfx, float* fx[], int32 nout, floa
 	verifyf(result == FLUID_OK, TEXT("set_gen: Failed"));
 }
 
-
+void USynthInstance::fluid_synth_write_float(
+	int 	len,
+	void*   lout,
+	int 	loff,
+	int 	lincr,
+	void*   rout,
+	int 	roff,
+	int 	rincr
+)
+{
+	UE::TScopeLock<UE::FSpinLock> ScopeLock(FluidsynthLock);
+	int32 result = ::fluid_synth_write_float(Instance, len, lout, loff, lincr, rout, roff, rincr);
+	verifyf(result == FLUID_OK, TEXT("set_gen: Failed"));
+}
 
 int USynthInstance::count_midi_channels()
 {

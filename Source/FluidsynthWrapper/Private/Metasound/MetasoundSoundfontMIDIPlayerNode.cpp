@@ -318,7 +318,10 @@ public:
 
 			if (SynthInstance.IsValid())
 			{
-				SynthInstance->process(NumSamples, 0, NULL, 2, arrays);
+				//SynthInstance->process(NumSamples, 0, NULL, 2, arrays);
+				//SynthInstance->process(NumSamples, 2, arrays, 0, NULL);
+				SynthInstance->fluid_synth_write_float(NumSamples, LAudio, 0, 1, RAudio, 0, 1);
+
 			}
 
 

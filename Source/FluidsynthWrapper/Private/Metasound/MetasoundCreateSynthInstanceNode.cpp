@@ -39,6 +39,7 @@ namespace Metasound
 	{
 		METASOUND_PARAM(InSynthInstanceName, "SynthInstanceName", "The name of the synth");
 		METASOUND_PARAM(InSoundfontPath, "SoundfontPath", "The path of the soundfont used by the synth\nExample: \"/soundfonts/\" + \"Touhou.sf2\"");
+		METASOUND_PARAM(InStartingProgram, "StartingProgram", "The program the synth is starting with");
 
 		METASOUND_PARAM(OutSynthInstance, "SynthInstance", "The synth created");
 	}
@@ -50,9 +51,10 @@ namespace Metasound
 	public:
 		// Constructor
 		FCreateSynthInstanceOperator(const Metasound::FBuildOperatorParams& InParams,
-			FStringReadRef SynthInstanceName,
-			FStringReadRef SoundfontPath)
-			:  Inputs{ SynthInstanceName, SoundfontPath }
+			const FStringReadRef& SynthInstanceName,
+			const FStringReadRef& SoundfontPath,
+			const FInt32ReadRef& StartingProgram)
+			:  Inputs{ SynthInstanceName, SoundfontPath, StartingProgram }
 			, Outputs{ TDataWriteReferenceFactory<FSynthInstance>::CreateAny(InParams.OperatorSettings) }
 		{
 
@@ -66,7 +68,8 @@ namespace Metasound
 			static const FVertexInterface Interface(
 				FInputVertexInterface(
 					TInputDataVertex<FString>(METASOUND_GET_PARAM_NAME_AND_METADATA(InSynthInstanceName)),
-					TInputDataVertex<FString>(METASOUND_GET_PARAM_NAME_AND_METADATA(InSoundfontPath))
+					TInputDataVertex<FString>(METASOUND_GET_PARAM_NAME_AND_METADATA(InSoundfontPath)),
+					TInputDataVertex<int32>(METASOUND_GET_PARAM_NAME_AND_METADATA(InStartingProgram))
 					//TInputDataVertex<HarmonixMetasound::FMidiStream>(METASOUND_GET_PARAM_NAME_AND_METADATA(InputMidiStream)),
 					//TInputDataVertex<Metasound::FSynthInstance>(METASOUND_GET_PARAM_NAME_AND_METADATA(InputSynthInstance)),
 					//TInputDataVertex<FTrigger>("Play", FDataVertexMetadata{ LOCTEXT("MetaSoundSoundfontPlayerNode_InputPlayDesc", "Plays the given note") })
@@ -119,7 +122,7 @@ namespace Metasound
 			//FTriggerReadRef PlayReadRef;
 			FStringReadRef SynthInstanceName;
 			FStringReadRef SoundfontPath;
-
+			FInt32ReadRef StartingProgram;
 		};
 		
 		struct FOutputs
@@ -135,6 +138,7 @@ namespace Metasound
 		{
 			InOutVertexData.BindReadVertex("SynthInstanceName", Inputs.SynthInstanceName);
 			InOutVertexData.BindReadVertex("SoundfontPath", Inputs.SoundfontPath);
+			InOutVertexData.BindReadVertex("StartingProgram", Inputs.StartingProgram);
 
 			//InOutVertexData.BindReadVertex("MidiStream", Inputs.MidiStream);
 			//InOutVertexData.BindReadVertex("SynthInstance", Inputs.SynthInstance);
@@ -187,8 +191,9 @@ namespace Metasound
 
 			FStringReadRef SynthInstanceName = InputData.GetOrConstructDataReadReference<FString>("SynthInstanceName");
 			FStringReadRef SoundfontPath = InputData.GetOrConstructDataReadReference<FString>("SoundfontPath");
+			FInt32ReadRef StartingProgram = InputData.GetOrConstructDataReadReference<int32>("StartingProgram");
 
-			return MakeUnique<FCreateSynthInstanceOperator>(InParams, SynthInstanceName, SoundfontPath);
+			return MakeUnique<FCreateSynthInstanceOperator>(InParams, SynthInstanceName, SoundfontPath, StartingProgram);
 		}
 
 public:
@@ -232,6 +237,7 @@ public:
 					}
 
 					SynthInstance->sfload(FilePath, 1);
+					SynthInstance->program_change(0, *Inputs.StartingProgram); // Changes Preset to Slow String
 				}
 			}
 			const FSynthInstance& Inst = *Outputs.SynthInstance;
