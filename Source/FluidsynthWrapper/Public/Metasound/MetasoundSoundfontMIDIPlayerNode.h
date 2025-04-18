@@ -9,6 +9,8 @@
 #undef DECLARE_METASOUND_PARAM_EXTERN
 #undef DECLARE_METASOUND_PARAM_ALIAS
 
+DECLARE_CYCLE_STAT(TEXT("MidiSynth"), STAT_MidiSynth, STATGROUP_Game);
+
 // Redifinitation because of dll linkage
 #define DECLARE_METASOUND_PARAM_EXTERN(NAME)      \
 	FLUIDSYNTHWRAPPER_API extern const TCHAR* NAME##Name;       \

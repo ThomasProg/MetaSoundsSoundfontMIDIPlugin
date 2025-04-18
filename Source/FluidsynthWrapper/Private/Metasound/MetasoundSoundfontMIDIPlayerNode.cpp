@@ -212,6 +212,7 @@ public:
 		void Execute()
 		{
 			//ZeroOutput();
+			SCOPE_CYCLE_COUNTER(STAT_MidiSynth);
 
 			// Create a synth if not
 			if (Inputs.SynthInstance.Get() != nullptr && Inputs.SynthInstance->GetSynthInstanceProxy() && Inputs.SynthInstance->GetSynthInstanceProxy()->SynthInstance)
@@ -311,9 +312,6 @@ public:
 
 			const int32 NumSamples = Outputs.AudioLeft->Num();
 
-			memset(LAudio, 0, NumSamples * sizeof(float));
-			memset(RAudio, 0, NumSamples * sizeof(float));
-
 			float* arrays[] = { LAudio, RAudio };
 
 			if (SynthInstance.IsValid())
@@ -322,6 +320,11 @@ public:
 				//SynthInstance->process(NumSamples, 2, arrays, 0, NULL);
 				SynthInstance->fluid_synth_write_float(NumSamples, LAudio, 0, 1, RAudio, 0, 1);
 
+			}
+			else
+			{
+				memset(LAudio, 0, NumSamples * sizeof(float));
+				memset(RAudio, 0, NumSamples * sizeof(float));
 			}
 
 
