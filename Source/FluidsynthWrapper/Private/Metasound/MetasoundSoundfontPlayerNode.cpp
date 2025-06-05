@@ -20,6 +20,10 @@
 
 #define LOCTEXT_NAMESPACE "MetasoundMGF"
 
+#define IS_VERSION(MAJOR, MINOR) (ENGINE_MAJOR_VERSION == MAJOR) && (ENGINE_MINOR_VERSION == MINOR)
+#define IS_VERSION_OR_PREV(MAJOR, MINOR) (ENGINE_MAJOR_VERSION == MAJOR) && (ENGINE_MINOR_VERSION <= MINOR)
+#define IS_VERSION_OR_AFTER(MAJOR, MINOR) (ENGINE_MAJOR_VERSION == MAJOR) && (ENGINE_MINOR_VERSION >= MINOR)
+
 using namespace Metasound;
 
 class FMetaSoundSoundfontPlayerNodeOperator : public TExecutableOperator<FMetaSoundSoundfontPlayerNodeOperator>
@@ -106,33 +110,43 @@ public:
 		return Metadata;
 	}
 
+#if IS_VERSION_OR_PREV(5, 4)
 	static TUniquePtr<IOperator> CreateOperator(const FCreateOperatorParams& InParams, TArray<TUniquePtr<IOperatorBuildError>>& OutErrors)
 	{
 		const FInputVertexInterface& InputInterface = InParams.Node.GetVertexInterface().GetInputInterface();
 		const FDataReferenceCollection& InputCollection = InParams.InputDataReferences;
 
-		//FWaveTableBankAssetReadRef InWaveTableBankReadRef = InputCollection.GetDataReadReferenceOrConstruct<FWaveTableBankAsset>("WaveTableBank");
 		FInt32ReadRef InKeyReadRef = InputCollection.GetDataReadReferenceOrConstruct<int32>("Key");
 		FInt32ReadRef InVelocityReadRef = InputCollection.GetDataReadReferenceOrConstruct<int32>("Velocity");
 		FInt32ReadRef InChannelReadRef = InputCollection.GetDataReadReferenceOrConstruct<int32>("Channel");
 		FSynthInstanceReadRef InSynthInstanceReadRef = InputCollection.GetDataReadReferenceOrConstruct<FSynthInstance>("SynthInstance");
 		FTriggerReadRef InPlayReadRef = InputCollection.GetDataReadReferenceOrConstructWithVertexDefault<FTrigger>(InputInterface, "Play", InParams.OperatorSettings);
 		FTriggerReadRef InStopReadRef = InputCollection.GetDataReadReferenceOrConstructWithVertexDefault<FTrigger>(InputInterface, "Stop", InParams.OperatorSettings);
-		//FTriggerReadRef InSyncReadRef = InputCollection.GetDataReadReferenceOrConstructWithVertexDefault<FTrigger>(InputInterface, "Sync", InParams.OperatorSettings);
-		//FFloatReadRef InPitchShiftReadRef = InputCollection.GetDataReadReferenceOrConstructWithVertexDefault<float>(InputInterface, "PitchShift", InParams.OperatorSettings);
-		//FBoolReadRef InLoopReadRef = InputCollection.GetDataReadReferenceOrConstructWithVertexDefault<bool>(InputInterface, "Loop", InParams.OperatorSettings);
-
-		//TOptional<FAudioBufferReadRef> InPhaseModReadRef;
-		//if (InputCollection.ContainsDataReadReference<FAudioBuffer>("PhaseMod"))
-		//{
-		//	InPhaseModReadRef = InputCollection.GetDataReadReference<FAudioBuffer>("PhaseMod");
-		//}
-
-		return MakeUnique<FMetaSoundSoundfontPlayerNodeOperator>(InParams, /*InWaveTableBankReadRef,*/ InKeyReadRef, InVelocityReadRef, InChannelReadRef, InSynthInstanceReadRef, InPlayReadRef, InStopReadRef/*, MoveTemp(InPhaseModReadRef)*/);
+		return MakeUnique<FMetaSoundSoundfontPlayerNodeOperator>(InParams, InKeyReadRef, InVelocityReadRef, InChannelReadRef, InSynthInstanceReadRef, InPlayReadRef, InStopReadRef);
 	}
 
+#elif IS_VERSION_OR_AFTER(5, 6)
+	static TUniquePtr<Metasound::IOperator> CreateOperator(const FBuildOperatorParams& InParams, FBuildResults& OutResults)
+	{
+		const FOperatorSettings& Settings = InParams.OperatorSettings;
+		const FInputVertexInterfaceData& InputData = InParams.InputData;
+
+		FInt32ReadRef InKeyReadRef = InputData.GetOrConstructDataReadReference<int32>("Key");
+		FInt32ReadRef InVelocityReadRef = InputData.GetOrConstructDataReadReference<int32>("Velocity");
+		FInt32ReadRef InChannelReadRef = InputData.GetOrConstructDataReadReference<int32>("Channel");
+		FSynthInstanceReadRef InSynthInstanceReadRef = InputData.GetOrConstructDataReadReference<FSynthInstance>("SynthInstance");
+		FTriggerReadRef InPlayReadRef = InputData.GetOrConstructDataReadReference<FTrigger>("Play", InParams.OperatorSettings);
+		FTriggerReadRef InStopReadRef = InputData.GetOrConstructDataReadReference<FTrigger>("Stop", InParams.OperatorSettings);
+		return MakeUnique<FMetaSoundSoundfontPlayerNodeOperator>(InParams, InKeyReadRef, InVelocityReadRef, InChannelReadRef, InSynthInstanceReadRef, InPlayReadRef, InStopReadRef);
+	}
+#endif
+
 	FMetaSoundSoundfontPlayerNodeOperator(
+#if IS_VERSION_OR_PREV(5, 4)
 		const FCreateOperatorParams& InParams,
+#elif IS_VERSION_OR_AFTER(5, 6)
+		const FBuildOperatorParams& InParams,
+#endif
 		//const FWaveTableBankAssetReadRef& InWaveTableBankReadRef,
 		const FInt32ReadRef& InKeyReadRef,
 		const FInt32ReadRef& InVelocityReadRef,

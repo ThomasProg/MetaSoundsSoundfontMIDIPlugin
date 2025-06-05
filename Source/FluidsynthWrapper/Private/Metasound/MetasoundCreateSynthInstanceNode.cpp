@@ -233,11 +233,20 @@ public:
 					else
 					{
 						FString FullPath = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*FPaths::ProjectContentDir());
-						FilePath = *(FullPath + *Inputs.SoundfontPath);
+						if (Inputs.SoundfontPath->IsEmpty())
+						{
+							FilePath = FullPath + "soundfonts/SGM.sf2";
+						}
+						else
+						{
+							FilePath = *(FullPath + *Inputs.SoundfontPath);
+						}
 					}
 
 					SynthInstance->sfload(FilePath, 1);
-					SynthInstance->program_change(0, *Inputs.StartingProgram); // Changes Preset to Slow String
+					// Change program for every channel
+					for (int i = 0; i < 16; i++)
+						SynthInstance->program_change(i, *Inputs.StartingProgram); // Changes Preset to Slow String
 				}
 			}
 			const FSynthInstance& Inst = *Outputs.SynthInstance;

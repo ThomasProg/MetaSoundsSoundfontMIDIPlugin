@@ -48,7 +48,8 @@ public:
 	virtual float GetSpeed(bool* MaintainPitch = nullptr) override;
 
 	// update the effect with the current beat/tempo
-	virtual void SetBeat(float beat) override;
+	//virtual void SetBeat(float beat) override;
+	//virtual void SetQuarterNote(float QuarterNote) override {}
 	virtual void SetTempo(float bpm) override;
 
 	virtual void SetSampleRate(float InSampleRateHz) override;

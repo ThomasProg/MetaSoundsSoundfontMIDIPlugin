@@ -129,9 +129,9 @@ float FSoundfontInstrument::GetSpeed(bool* MaintainPitch)
 }
 
 // update the effect with the current beat/tempo
-void FSoundfontInstrument::SetBeat(float beat)
-{
-}
+//void FSoundfontInstrument::SetBeat(float beat)
+//{
+//}
 void FSoundfontInstrument::SetTempo(float bpm)
 {
 }

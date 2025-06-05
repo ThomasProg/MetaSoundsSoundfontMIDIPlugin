@@ -51,28 +51,46 @@ namespace Metasound
 		return Info;
 	}
 
-	FDataReferenceCollection FVolumeOperator::GetInputs() const
+	//FDataReferenceCollection FVolumeOperator::GetInputs() const
+	//{
+	//	using namespace VolumeNode;
+
+	//	FDataReferenceCollection InputDataReferences;
+
+	//	InputDataReferences.AddDataReadReference(METASOUND_GET_PARAM_NAME(InParamNameAudioInput), AudioInput);
+	//	InputDataReferences.AddDataReadReference(METASOUND_GET_PARAM_NAME(InParamNameAmplitude), Amplitude);
+
+	//	return InputDataReferences;
+	//}
+
+	//FDataReferenceCollection FVolumeOperator::GetOutputs() const
+	//{
+	//	using namespace VolumeNode;
+
+	//	FDataReferenceCollection OutputDataReferences;
+
+	//	OutputDataReferences.AddDataReadReference(METASOUND_GET_PARAM_NAME(OutParamNameAudio), AudioOutput);
+
+	//	return OutputDataReferences;
+	//}
+
+	void FVolumeOperator::BindInputs(FInputVertexInterfaceData& InVertexData)
 	{
 		using namespace VolumeNode;
 
-		FDataReferenceCollection InputDataReferences;
-
-		InputDataReferences.AddDataReadReference(METASOUND_GET_PARAM_NAME(InParamNameAudioInput), AudioInput);
-		InputDataReferences.AddDataReadReference(METASOUND_GET_PARAM_NAME(InParamNameAmplitude), Amplitude);
-
-		return InputDataReferences;
+		InVertexData.BindReadVertex(METASOUND_GET_PARAM_NAME(InParamNameAudioInput), AudioInput);
+		InVertexData.BindReadVertex(METASOUND_GET_PARAM_NAME(InParamNameAmplitude), Amplitude);
 	}
 
-	FDataReferenceCollection FVolumeOperator::GetOutputs() const
+	void FVolumeOperator::BindOutputs(FOutputVertexInterfaceData& InVertexData)
 	{
 		using namespace VolumeNode;
 
-		FDataReferenceCollection OutputDataReferences;
-
-		OutputDataReferences.AddDataReadReference(METASOUND_GET_PARAM_NAME(OutParamNameAudio), AudioOutput);
-
-		return OutputDataReferences;
+		InVertexData.BindWriteVertex(METASOUND_GET_PARAM_NAME(OutParamNameAudio), AudioOutput);
 	}
+
+
+
 
 	const FVertexInterface& FVolumeOperator::GetVertexInterface()
 	{
@@ -91,7 +109,7 @@ namespace Metasound
 
 		return Interface;
 	}
-
+#if IS_VERSION_OR_PREV(5, 4)
 	TUniquePtr<IOperator> FVolumeOperator::CreateOperator(const FCreateOperatorParams& InParams, FBuildErrorArray& OutErrors)
 	{
 		using namespace VolumeNode;
@@ -104,6 +122,18 @@ namespace Metasound
 
 		return MakeUnique<FVolumeOperator>(InParams.OperatorSettings, AudioIn, InAmplitude);
 	}
+#elif IS_VERSION_OR_AFTER(5, 6)
+	TUniquePtr<Metasound::IOperator> FVolumeOperator::CreateOperator(const FBuildOperatorParams& InParams, FBuildResults& OutResults)
+	{
+		const FOperatorSettings& Settings = InParams.OperatorSettings;
+		const FInputVertexInterfaceData& InputData = InParams.InputData;
+
+		using namespace VolumeNode;
+		FAudioBufferReadRef AudioIn = InputData.GetOrConstructDataReadReference<FAudioBuffer>(METASOUND_GET_PARAM_NAME(InParamNameAudioInput), InParams.OperatorSettings);
+		FFloatReadRef InAmplitude = InputData.GetOrCreateDefaultDataReadReference<float>(METASOUND_GET_PARAM_NAME(InParamNameAmplitude), InParams.OperatorSettings);
+		return MakeUnique<FVolumeOperator>(InParams.OperatorSettings, AudioIn, InAmplitude);
+	}
+#endif
 
 	// https://github.com/alexirae/unreal-audio-dsp-template-UE5/blob/main/Plugins/AudioDSPTemplate/Source/AudioDSPTemplate/Private/MetasoundNodes/MetasoundVolumeNode.cpp
 	void FVolumeOperator::Execute()
@@ -113,9 +143,11 @@ namespace Metasound
 
 		const int32 NumSamples = AudioInput->Num();
 
+		float Amp = *Amplitude;
+
 		for (int32 Index = 0; Index < NumSamples; ++Index)
 		{
-			OutputAudio[Index] = (*Amplitude) * InputAudio[Index];
+			OutputAudio[Index] = Amp * InputAudio[Index];
 		}
 	}
 
